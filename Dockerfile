@@ -61,8 +61,9 @@ RUN pip install torch torchvision torchaudio --index-url https://download.pytorc
 ENV TORCH_CUDA_ARCH_LIST="5.0 6.0 7.0 7.5 8.0 8.6 9.0+PTX"
 
 
-# Install Kalib
-RUN --mount=type=ssh git clone https://github.com/Atlinx/Kalib.git \
+# Install Kalib - rewrite git@github.com: SSH URLs to HTTPS so public submodules don't need SSH auth
+RUN git config --global url."https://github.com/".insteadOf "git@github.com:" \
+    && git clone https://github.com/Atlinx/Kalib.git \
     && cd Kalib \
     && git submodule update --init --recursive \
     && pip install meson-python Cython \
