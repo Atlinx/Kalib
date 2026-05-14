@@ -229,6 +229,6 @@ if __name__ == "__main__":
     queries = torch.tensor([[[0.0000, 1071.1674, 173.7271]]])
     queries = queries.cuda()
     video = video.cuda()
-    output_dir = "/mnt/homes/minghao/robotflow/easy_calib/third_party/spatial_tracker/outputs"
-    pred_tracks, pred_visibility = spatracker_predict(spatracker_args, video, queries=queries, segm_mask=cv2.imread("/mnt/public/datasets/DROID/Robotflow/gaussian07_26_23_08_02/EasyCalib/first_frame_mask_segm/mask.png"))
+    output_dir = ""
+    pred_tracks, pred_visibility = spatracker_predict(spatracker_args, video, queries=queries, segm_mask=cv2.imread(""))
     logger.info(f"pred_tracks's shape: {pred_tracks.shape}, pred_visibility's shape:{pred_visibility.shape}")

@@ -295,7 +295,7 @@ def RT2matrix(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--path", type=int, default="/mnt/public/datasets/DROID/sim/Robotflow/main/gaussian07_27_19_12_48", help="path where the caliberation result reside."
+        "--path", type=int, default="", help="path where the caliberation result reside."
     )
     args = parser.parse_args()
 

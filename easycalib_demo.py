@@ -454,6 +454,9 @@ class Kalib:
 			if keypoint_tracking_method == KEYPOINT_TRACKING_METHODS.COTRACKER:
 				if not COTRACKER_INSTALLED:
 					raise Exception("Cotracker is not installed, however, the kpt-tracking method is set to cotracker.")
+				# Change current working directory for Grounded-Segment-Anything inference.
+				pwd = os.getcwd()
+				os.chdir(args.cotracker_repo_path)
 
 				end_effector_position = end_effector_position.to(cuda_device)
 				if args.checkpoint is not None:
@@ -476,6 +479,8 @@ class Kalib:
 
 				pred_tracks = pred_tracks.detach().cpu().numpy()
 				pred_visibility = pred_visibility.detach().cpu().numpy()
+
+				os.chdir(pwd)
 
 			elif keypoint_tracking_method == KEYPOINT_TRACKING_METHODS.SPATIAL_TRACKER:
 				if not SPATIAL_TRACKER_INSTALLED:

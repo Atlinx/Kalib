@@ -14,26 +14,30 @@
     <br>
 </p>
 
-
-
 <div align="center">
 
 <img src="https://img.shields.io/badge/Python-v3-E97040?logo=python&logoColor=white" /> &nbsp;&nbsp;&nbsp;&nbsp;
 <img alt="powered by Pytorch" src="https://img.shields.io/badge/PyTorch-❤️-F8C6B5?logo=pytorch&logoColor=white"> &nbsp;&nbsp;&nbsp;&nbsp;
 <img src="https://img.shields.io/badge/Conda-Supported-lightgreen?style=social&logo=anaconda" /> &nbsp;&nbsp;&nbsp;&nbsp;
- <a href='https://sites.google.com/view/hand-eye-kalib'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;&nbsp;&nbsp;&nbsp;
- <a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FLearner209%2FKalib&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false"/></a>
+<a href='https://sites.google.com/view/hand-eye-kalib'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;&nbsp;&nbsp;&nbsp;
+<a href="https://hits.seeyoufarm.com"><img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FLearner209%2FKalib&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false"/></a>
+
 </div>
 
 <!-- # **Kalib**: Markerless Hand-Eye Calibration with Keypoint Tracking
 
 The official code repository for our paper: **Kalib: Markerless Hand-Eye Calibration with Keypoint Tracking.** -->
+
 ## ❖ Contents
 
-- [Introduction](#introduction)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [Dataset Conventions](#-dataset-conventions)
+- [❖ Contents](#-contents)
+- [❖ Introduction:](#-introduction)
+- [❖ Installation](#-installation)
+- [❖ Download sample data and reproducibility.](#-download-sample-data-and-reproducibility)
+- [❖ Usage](#-usage)
+- [❖ Dataset Conventions](#-dataset-conventions)
+- [❖ ✨Stars/forks/issues/PRs are all welcome!](#-starsforksissuesprs-are-all-welcome)
+- [❖ Last but Not Least](#-last-but-not-least)
 
 ## ❖ Introduction:
 
@@ -44,12 +48,12 @@ In each calibration process, **Kalib** uses keypoint tracking and proprioceptive
 Our method does not require training new networks or access to mesh models. Through evaluations in simulation environments and the real-world dataset DROID, **Kalib** demonstrates superior accuracy compared to recent baseline methods.
 This approach provides an effective and flexible calibration process for various robot systems by simplifying setup and removing dependency on precise physical markers.
 
-🤗 Please cite [Kalib](https://github.com/Learner209/Kalib) in your publications if it helps with your work. Please star🌟 this repo to help others notice **Kalib** if you think it is useful. Thank you! 
+🤗 Please cite [Kalib](https://github.com/robotflow-initiative/Kalib) in your publications if it helps with your work. Please star🌟 this repo to help others notice **Kalib** if you think it is useful. Thank you!
 😉
 
 ## ❖ Installation
 
-We run on `Ubuntu 22.04 LTS` with a system configured with $2\times$ NVIDIA RTX A40 GPU.
+We run on `Ubuntu 22.04 LTS` with a system configured with $2\times$ NVIDIA RTX A40 GPU. We also provide Dockerfile for different stages.
 
 1. Use conda to create a env for **Kalib** and activate it.
 
@@ -59,66 +63,137 @@ conda activate kalib
 pip install -r requirements.txt
 ```
 
-2. Download SAM checkpoints.
-```bash
-sam_ckpts_dir="./pretrained_checkpoints"
-wget -P "$sam_ckpts_dir" "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth"
-wget -P "$sam_ckpts_dir" "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth"
-wget -P "$sam_ckpts_dir" "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
-```
-> Note: If you wanna specify the sam_checkpoints path(the default is *sam_vit_l*), plz modify default value in [sam_type](./easycalib/config/parse_demo_argument.py#L49) and [sam_checkpoint_path](./easycalib/config/parse_demo_argument.py#L43) or pass it as an argument.
-
-3. Grounded-SAM installation.
-Please refer to [Grounded-SAM readme](https://github.com/IDEA-Research/Grounded-Segment-Anything/blob/main/README.md).
-Additionally, link the downloaded SAM checkpoints to Grounded-SAM root path as Grounded-SAM are using SAM ckpts too.
-
-```bash
-ln -sf $PWD/pretrained_checkpoints ./third_party/grounded_segment_anything/
-```
-
-4. Install spatial tracker.
+2. Install spatial tracker.
 
 Please refer to [Spatracker readme](https://github.com/henry123-boy/SpaTracker/blob/main/README.md)
 
 Additionally, download the `SpaT_final.pth` checkpoints into `./third_party/spatial_tracker/checkpoints/` directory.
 
-5. (Optional) Install cotracker.
-Please refer to [CoTracker readme](https://github.com/facebookresearch/co-tracker/blob/main/README.md)
+Alternatively, you can choose to setup the spatial-tracker env with `bash scripts/bootstrap_spatial_tracker.sh $PWD`
 
-6. Install **Kalib** as a package.
+3. Install **Kalib** as a package.
+
 ```bash
 cd <your-project-root-directory>
 pip install -e .
 ```
 
+> Docker command:
+>
+> ```bash
+> DOCKER_BUILDKIT=1 docker build -t kalib_build --target build  --progress=plain . 2>&1 | tee build.log
+> ```
+
+> **📣 Attention :**, Optionally, you can use foreground mask to refine the keypoint tracking module. To do so, you need to install the following dependencies:
+
+4. (**Optional**) Download SAM checkpoints.
+
+```bash
+bash scripts/bootstrap_sam.sh $PWD
+```
+
+> Note: If you wanna specify the sam checkpoints path(the default is \_sam_vit_l), plz modify default value in [sam_type](./easycalib/config/parse_demo_argument.py#L49) and [sam_checkpoint_path](./easycalib/config/parse_demo_argument.py#L43) or pass it as an argument.
+
+5. (**Optional**) Grounded-SAM installation.
+
+Please refer to [Grounded-SAM readme](https://github.com/IDEA-Research/Grounded-Segment-Anything/blob/main/README.md).
+
+Alternatively, you can choose to setup the grounded-sam env with `bash scripts/bootstrap_grounded_sam.sh $PWD`
+
+> Docker command:
+>
+> ```bash
+> DOCKER_BUILDKIT=1 docker build -t kalib_grounded_sam --target sam_included  --progress=plain . 2>&1 | tee build.log
+> ```
+
+6. (**Optional**) Install cotracker if you wanna dabble into different keypoint-tracking module.
+
+Please refer to [CoTracker readme](https://github.com/facebookresearch/co-tracker/blob/main/README.md)
+Alternatively, you can choose to setup the cotracker env with `bash scripts/bootstrap_cotracker.sh $PWD`
+
+> Docker command:
+>
+> ```bash
+> DOCKER_BUILDKIT=1 docker build -t kalib_cotracker --target cotracker_included  --progress=plain . 2>&1 | tee build.log
+> ```
+
+## ❖ Download sample data and reproducibility.
+
+1. Synthetic dataset generated with [pyrfuniverse](https://github.com/robotflow-initiative/pyrfuniverse): `all_exp_pyrfuniverse_sim_data`.
+2. Our experimental results reported in the paper use the following _DROID_ takes: `exp_droid_list/exp_droid_list.txt`.
+3. Download test sample data for both sim and _DROID_: `test_sample_droid_data`, `test_sample_sim_data`.
+4. Download test sampel data for running procesing script on _DROID_: `test_extract_droid_data`.
+
+Plz download these data from this [google drive link](https://drive.google.com/drive/folders/1gAONRRWb03m35hICTFaAhAC52EN8A9ba?usp=sharing) or instead use [this script](./dataset/populate_data.sh) to populate data in `./dataset` folder.
+When the download completes ,the folder structure of `./dataset` should look like this:
+
+```bash
+.
+├── all_exp_pyrfuniverse_sim_data
+├── exp_droid_list/exp_droid_list.txt
+├── test_extract_droid_data
+├── test_sample_droid_data
+├── test_sample_sim_data
+└── populate_data.sh
+
+```
+
 ## ❖ Usage
 
-1. Running the camera calibration pipeline.
+1. Running the camera calibration pipeline (this script loads the images and jsons specified by `dataset_dir`, shows a window prompting the user for one single-click(Use _Esc_ to quit the window), passes the **initially** annotated **TCP** point to kpt tracking module, and finally calls the **PNP** module to infer the camera pose.). A file with path `<your_dataset_dir>/Kalib/Kalib_outputs/pnp_inference_res.pkl` will be saved to disk afterwards, it contains keys: `avg_trans_err,avg_rot_err,avg_reprojection_error,pnp_transform_predicted_mats`. Its format can be known in [here](./easycalib_demo.py#L205).
+
 ```bash
-easyhec_repo_path=$PWD/third_party/easyhec/
 grounded_sam_repo_path=$PWD/third_party/grounded_segment_anything/
 spatial_tracker_repo_path=$PWD/third_party/spatial_tracker/
-dataset_dir=<your dataset dir>
-python easycalib_demo.py  --root_dir $dataset_dir --use_segm_mask true --caliberate_method pnp --pnp_refinement true --use_pnp_ransac false --use_grounded_sam --has_gt --win_len 1 --verbose --render_mask --easyhec_repo_path $easyhec_repo_pah --grounded_sam_repo_path $grounded_sam_repo_path --spatial_tracker_repo_path $spatial_tracker_repo_path --cut_off 300 --renderer_device_id 0 --tracking_device_id 0 --mask_inference_device_id 0 --keypoint_ids 0
+device_id=0;
+dataset_dir=$PWD/dataset/test_sample_droid_data/; keypoints_id=0;
+# Uncomment below to test on sample sim data.
+# dataset_dir=$PWD/dataset/test_sample_sim_data/; keypoints_id=0;
+
+python easycalib_demo.py  --root_dir $dataset_dir --use_segm_mask true --caliberate_method pnp --pnp_refinement true --use_pnp_ransac false --use_grounded_sam --has_gt --win_len 1 --verbose --render_mask --grounded_sam_repo_path $grounded_sam_repo_path --spatial_tracker_repo_path $spatial_tracker_repo_path --cut_off 300 --renderer_device_id ${device_id} --tracking_device_id ${device_id} --mask_inference_device_id ${device_id} --keypoint_ids ${keypoints_id}
 ```
+
 Parameters:
 
-* `root_dir`: where you stored all your video frames and json data.
-* `use_segm_mask`: whether to use foreground mask to guide kpt tracking module.
-* `use_grounded_sam`: whether to use Grounded-SAM to automatically generate robot arm mask.
-* `cut_off`: only process first $cut_off frames for both computational efficiency and kpt tracking stability.
-* `renderer_device_id`, `tracking_device_id`, `mask_inference_device_id`, the gpu_id for rendering mask, tracking annotated TCP and use SAM/Grounded-SAM to inference foreground mask.
-* `keypoint_ids`: choose what keypoints to be tracked. The keypoint configurations are specified in [franka_config.json](./easycalib/config/franka_config.json)
+-   `root_dir`: where you stored all your video frames and json data.
+-   `use_segm_mask`: whether to use foreground mask to guide kpt tracking module.
+-   `use_grounded_sam`: whether to use Grounded-SAM to automatically generate robot arm mask, the default prompt for mask segmentation is `robot arm`, to change prompt: use `--text_prompt` in argparse.
+-   `cut_off`: only process first $cut_off frames for both computational efficiency and kpt tracking stability.
+-   `renderer_device_id`, `tracking_device_id`, `mask_inference_device_id`, the gpu_id for rendering mask, tracking annotated TCP and use SAM/Grounded-SAM to inference foreground mask.
+-   `keypoint_ids`: choose what keypoints to be tracked. The keypoint configurations are specified in [franka_config.json](./easycalib/config/franka_config.json). **NOTE**: the num of keypoint_ids should be consistent with your number of clicks in the prompting window, otherwise it is undefined behaviour.
 
-
-2. Running the synthetic data generation pipeline. 
-We use pyrfuniverse as our simulation environment, please refer to [pyrfuniverse](https://github.com/robotflow-initiative/pyrfuniverse) for more details.
+2. (**Optional**) If you wanna generate synthetic data and run the synthetic data generation pipeline:
+   We use pyrfuniverse as our simulation environment, please refer to [pyrfuniverse](https://github.com/robotflow-initiative/pyrfuniverse) for more details.
+   Alternatively, you can choose to setup the pyrfuniverse env with `bash scripts/bootstrap_pyrfuniverse.sh $PWD`
 
 ```bash
 python ./tests/sim_franka/test_gaussian_trajectory.py
 ```
 
+> Docker command:
+>
+> ```bash
+> DOCKER_BUILDKIT=1 docker build -t kalib_rfu --target pyrfuniverse_included  --progress=plain . 2>&1 | tee build.log
+> ```
+
+3. (**Optional**) If you wanna test our pipeline on other takes in _DROID_ dataset, you can run the _DROID_ processing and data conversion script. Please refer to [droid](https://github.com/droid-dataset/droid) for more details.
+
+> **📣 Attention :**, you have to setup [pyzed_sdk](https://www.stereolabs.com/docs/app-development/python/install) in your conda env for this step, check out more info about this in [bootstrap_droid.sh](./scripts/bootstrap_droid.sh#L11).
+
+Alternatively, you can choose to setup the droid env with `bash scripts/bootstrap_droid.sh`
+
+```bash
+python easycalib/utils/process_droid_data.py --data_dir ./dataset/test_extract_droid_data --data_save_path ./dataset/processed_droid_data
+```
+
+> Docker command:
+>
+> ```bash
+> DOCKER_BUILDKIT=1 docker build -t kalib_droid --target droid_included  --progress=plain . 2>&1 | tee build.log
+> ```
+
 ## ❖ Dataset Conventions
+
 The video frames can be saved to `.png` or `.jpg` format, along with which an accompanying json file should be stored. For alignment between corresponding video frame and json file, they should be sorted alphabetically in ascending order.
 A template json format for specifying the robot configurations at the same timestamp with its image counterpart is in [template_config.json](./easycalib/config/template_config.json).
 
@@ -134,7 +209,7 @@ A more elaborated example is as follows:
                 854.9748197663477,
                 532.4341293247742
             ],
-            "camera_intrinsics": [ 
+            "camera_intrinsics": [
                 [
                     935.3074360871939,
                     0.0,
@@ -202,7 +277,7 @@ A more elaborated example is as follows:
                     8.149072527885437e-10,
                     -5.587935447692871e-08
                 ]
-                ... 
+                ...
             ],
             "joint_positions": [
                 1.4787984922025454,
@@ -228,7 +303,7 @@ A more elaborated example is as follows:
 }
 ```
 
-### ✨Stars/forks/issues/PRs are all welcome!
+## ❖ ✨Stars/forks/issues/PRs are all welcome!
 
 ## ❖ Last but Not Least
 

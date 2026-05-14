@@ -36,7 +36,6 @@ from sim_franka_config import (
     sim_franka_default_config,
 )
 from easycalib.utils.setup_logger import setup_logger
-from multiprocessing import Pool
 logger = setup_logger(__name__)
 import signal
 
@@ -50,8 +49,6 @@ def generate_camera_positions(radius, n_positions):
 
     camera_positions = []
     eye_targets = []
-    # ys = [0.2,0.4,0.8,1.0]
-    # eye_tar_ys = [0.9,0.7,0.4,0.2]
     ys = [-0.4, -0.2, 0.6, 1.2, 0.4]
     eye_tar_ys = [0.55, 0.55, 0.4, 0.2, 0.7]
 
@@ -68,13 +65,11 @@ def generate_camera_positions(radius, n_positions):
     return camera_positions, eye_targets
 
 
-GOOD_CAMERA_EYE_TARGETS = np.array(
+SAMPLED_CAMERA_EYE_TARGETS = np.array(
     [[0.3, 0.2, 0.4], [0.3, 0.5, 0.4], [0.3, 0.2, 0.4], [0.3, 0.9, 0.4], [0.3, 0.4, 0.4], [0.3, 0.4, 0.4], [0.3, 0.4, 0.4], [0.3, 0.4, 0.4], [0.3, 0.6, 0.4], [0.3, 0.2, 0.4], [0.3, 0.8, 0.4], [0.2, 0.4, 0.4], [0.2, 0.2, 0.4], [0.1, 0.4, 0.4], [0.3, 0.3, 0.4], [0.3, 0.9, 0.4], [0.3, 0.3, 0.4], [0.3, 0.3, 0.4], [0.3, 0.5, 0.4], [0.3, 0.5, 0.4]])
-GOOD_CAMERA_POSITIONS = np.array(
+SAMPLED_CAMERA_POSITIONS = np.array(
     [[1.2, 1.0, 0.4], [1.2, 0.1, 0.4], [1.9, 1.1, 1.0], [1.9, 0.2, 1.0], [0.8, 0.6, 1.0], [1.0, 0.6, 0.45], [1.0, 0.6, 0.1], [1.1, 1.3, -0.1], [1.1, 0.2, -0.1], [0.6, 1.1, -0.6], [0.6, 0.2, -0.6], [-0.5, 0.9, 0.5], [-0.5, 1.4, 0.5], [0.0, -0.4, 0.4], [0.5, 1.1, 1.2], [0.5, 0.2, 1.2], [-0.2, 1.1, 1.2], [-0.5, 1.1, 1.0], [1.0, 0.8, 0.5], [1.4, 0.8, 0.3]]
 )
-logger.info(f"GOOD_CAMERA_EYE_TARGETS:{GOOD_CAMERA_EYE_TARGETS.shape},GOOD_CAMERA_POSITIONS:{GOOD_CAMERA_POSITIONS.shape}")
-
 
 def cli(camera_position=None, camera_lookAt_target=None, save_name=None, rfu_port=5004):
     args, ROBOT_DATA = sim_franka_default_config(save_name)
@@ -93,7 +88,7 @@ def cli(camera_position=None, camera_lookAt_target=None, save_name=None, rfu_por
             gt_2d_projections = []
 
             # ! load into panda.urdf files.
-            env = RFUniverseBaseEnv(assets=["franka_panda"], port=rfu_port)
+            env = RFUniverseBaseEnv(port=rfu_port)
             env.SetTimeStep(0.005)
             franka = env.LoadURDF(
                 path=args.urdf_path,
@@ -127,8 +122,6 @@ def cli(camera_position=None, camera_lookAt_target=None, save_name=None, rfu_por
                 [1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]
             ])
             pCameraExtrinsics = opengl_2_opencv @ pCameraExtrinsics
-
-            local_to_world_matrix = np.array(camera.data["local_to_world_matrix"])
 
             cur_position = prev_position = np.asarray([0.0, 0.5, 0.6])
             vert_ind = 0
@@ -296,26 +289,13 @@ def cli(camera_position=None, camera_lookAt_target=None, save_name=None, rfu_por
         except KeyboardInterrupt:
             logger.info("Caught KeyboardInterrupt during image generation")
             raise
-        # except Exception as e:
-        # 	logger.info(str(e))
-        # 	raise
 
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGQUIT, signal_handler)
 
-    # SAVE_NAMES = [datetime.now().strftime("%m_%d_%H_%M_%S")] * len(GOOD_CAMERA_EYE_TARGETS)
-    # SAVE_NAMES = ["./dataset/rfu/gaussian" + save_name for save_name in SAVE_NAMES]
-
-    # tasks = [(cam_pos.tolist(), cam_eye_target.tolist(), save_name, 5004+i) for i, (cam_pos, cam_eye_target, save_name) in enumerate(zip(GOOD_CAMERA_POSITIONS, GOOD_CAMERA_EYE_TARGETS, SAVE_NAMES))]
-    # logger.debug(f"Use multiprocessing.Pool to parallel mask rendering routine.")
-
-    # with time_block("Finish mask rendering routine. ", logger):
-    # 	with Pool(processes=8) as pool:
-    # 		pool.starmap(cli, tasks)
     cam_poss, cam_eye_targets = generate_camera_positions(radius=1.6, n_positions=5)
-    print(cam_poss, cam_eye_targets)
 
     for ind in range(len(cam_eye_targets)):
         save_name = datetime.now().strftime("%m_%d_%H_%M_%S")
@@ -324,4 +304,3 @@ if __name__ == "__main__":
         camera_eye_target = cam_eye_targets[ind]
         set_random_seed(2024 + ind)
         cli(save_name=save_name, camera_position=camera_position.tolist(), camera_lookAt_target=camera_eye_target.tolist(), rfu_port=5004 + ind)
-        # sys.exit(0)

@@ -124,8 +124,8 @@ def run_grounded_sam(frame_save_path: str, mask_save_path: str = None, text_prom
 			stderr=subprocess.PIPE,
 			text=True,
 		)
-		logger.debug("STDOUT:", process.stdout)
-		logger.debug("STDERR:", process.stderr)
+		logger.debug(f"STDOUT:{process.stdout}")
+		logger.debug(f"STDERR:{process.stderr}")
 
 		grounded_sam_mask_path = os.path.join(grounded_sam_output_dir, "mask.jpg")
 		if osp.exists(grounded_sam_mask_path):

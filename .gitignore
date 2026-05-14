@@ -1,7 +1,9 @@
 *.csv
 *.npy
 *.pdf
-dataset/
+*.pt
+dataset/*
+!dataset/populate_data.sh
 exp/
 
 # exclude third_party configuration.
