@@ -1,7 +1,7 @@
 #!/bin/bash
 REPO_DIR=$(dirname "$(readlink -f "$0/..")")
 
-DATASET_DIR=$REPO_DIR/dataset
+DATASET_DIR=$REPO_DIR/dataset/test_sample_droid_data
 cd $REPO_DIR
 python easycalib_demo.py  --root_dir $DATASET_DIR \
     --use_segm_mask true \

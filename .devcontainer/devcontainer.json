@@ -1,6 +1,11 @@
 {
     "name": "Kalib - Hand-Eye Calibration",
     "dockerFile": "../Dockerfile",
+    "workspaceMount": "type=bind,consistency=cached,source=${localWorkspaceFolder},target=/home/developer/Kalib", // Mount local repo
+    "workspaceFolder": "/home/developer/Kalib",
+    "mounts": [
+        "type=volume,dst=/home/developer/Kalib/third_party" // Hide third_party, to use the prebuild versions in the image
+    ],
     "remoteUser": "developer",
     "features": {
         "ghcr.io/devcontainers/features/git:1": {}
@@ -28,8 +33,5 @@
             }
         }
     },
-    "forwardPorts": [],
-    "remoteEnv": {
-        "PATH": "/opt/conda/envs/kalib/bin:${PATH}"
-    }
+    "forwardPorts": []
 }
