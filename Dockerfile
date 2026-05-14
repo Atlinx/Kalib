@@ -62,7 +62,7 @@ ENV TORCH_CUDA_ARCH_LIST="5.0 6.0 7.0 7.5 8.0 8.6 9.0+PTX"
 
 
 # Install Kalib
-RUN git clone https://github.com/Atlinx/Kalib.git \
+RUN --mount=type=ssh git clone https://github.com/Atlinx/Kalib.git \
     && cd Kalib \
     && git submodule update --init --recursive \
     && pip install meson-python Cython \
