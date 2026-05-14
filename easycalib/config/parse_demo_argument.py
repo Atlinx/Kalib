@@ -180,7 +180,7 @@ def parse_easycalib_default_args(cli_input: bool = True):
     # ! load .yaml manipulator config files.
     assert os.path.exists(args.manipulator_config_path)
     with open(args.manipulator_config_path, "r") as file:
-        config = jsonsrc_calib.load(file)
+        config = json.load(file)
 
         # Extract manipulator name
         manipulator_name = config["manipulator"]["name"]

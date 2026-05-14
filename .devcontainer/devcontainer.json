@@ -28,7 +28,6 @@
             }
         }
     },
-    "postCreateCommand": "conda run -n kalib pip install -e . && echo 'Kalib dev environment ready!'",
     "forwardPorts": [],
     "remoteEnv": {
         "PATH": "/opt/conda/envs/kalib/bin:${PATH}"

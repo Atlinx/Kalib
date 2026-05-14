@@ -77,7 +77,7 @@ RUN cd Kalib/third_party/grounded_segment_anything \
     && python -m pip install -e segment_anything \
     && pip install --no-build-isolation -e GroundingDINO \
     && pip install --upgrade diffusers[torch] \
-    && bash install.sh \
+    && cd grounded-sam-osx && bash install.sh cd .. \
     && git clone https://github.com/xinyu1205/recognize-anything.git \
     && pip install -r ./recognize-anything/requirements.txt \
     && pip install -e ./recognize-anything/ \
@@ -88,8 +88,11 @@ RUN cd Kalib/third_party/grounded_segment_anything \
 
 
 # Install SpaTracker
+# Replace cupy with prebuild cupy version to avoid build issues in docker
 # Download SpaTracker model checkpoints (spaT_final.pth) from https://drive.google.com/file/d/18YlG_rgrHcJ7lIYQWfRz_K669z6FdmUX/view
 RUN cd Kalib/third_party/spatial_tracker \
+    && sed -i 's/cupy==12\.2\.0/cupy-cuda12x==12.2.0/g' requirements.txt \
+    && cat requirements.txt \
     && pip install -r requirements.txt \
     && pip install gdown \
     && mkdir checkpoints \
@@ -98,10 +101,15 @@ RUN cd Kalib/third_party/spatial_tracker \
 
 
 # Install Co-Tracker
-RUN cd Kalib/third_party/co_tracker \
+RUN cd Kalib/third_party/cotracker \
     && pip install -e . \
     && pip install matplotlib flow_vis tqdm tensorboard
 
+
+# Install Kalib package
+RUN cd Kalib && pip install -e .
+
+WORKDIR /workspace/Kalib
 
 # Default command, open shell in the "kalib" conda environment
 CMD ["/bin/bash"]
