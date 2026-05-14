@@ -60,50 +60,46 @@ RUN pip install torch torchvision torchaudio --index-url https://download.pytorc
 # See https://en.wikipedia.org/wiki/CUDA#GPUs_supported for more details on supported compute capabilities for each CUDA SDK version.
 ENV TORCH_CUDA_ARCH_LIST="5.0 6.0 7.0 7.5 8.0 8.6 9.0+PTX"
 
-# Add GitHub to known hosts to avoid SSH issues when cloning repositories
-RUN mkdir -p -m 0700 ~/.ssh && \
-    ssh-keyscan github.com >> ~/.ssh/known_hosts && \
-    chmod 600 ~/.ssh/known_hosts
 
 # Install Kalib
-# RUN git clone https://github.com/Atlinx/Kalib.git \
-#     && cd Kalib \
-#     && git submodule update --init --recursive \
-#     && pip install meson-python Cython \
-#     && pip install -r requirements.txt --no-build-isolation
+RUN git clone https://github.com/Atlinx/Kalib.git \
+    && cd Kalib \
+    && git submodule update --init --recursive \
+    && pip install meson-python Cython \
+    && pip install -r requirements.txt --no-build-isolation
 
 
-# # Install Grounded-SAM
-# # Download Grounded-SAM model checkpoints
-# ENV AM_I_DOCKER=False BUILD_WITH_CUDA=True CUDA_HOME=/usr/local/cuda/
-# RUN cd Kalib/third_party/grounded_segment_anything \
-#     && python -m pip install -e segment_anything \
-#     && pip install --no-build-isolation -e GroundingDINO \
-#     && pip install --upgrade diffusers[torch] \
-#     && bash install.sh \
-#     && git clone https://github.com/xinyu1205/recognize-anything.git \
-#     && pip install -r ./recognize-anything/requirements.txt \
-#     && pip install -e ./recognize-anything/ \
-#     && pip install opencv-python pycocotools matplotlib onnxruntime onnx ipykernel \
-#     && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth" \
-#     && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth" \
-#     && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
+# Install Grounded-SAM
+# Download Grounded-SAM model checkpoints
+ENV AM_I_DOCKER=False BUILD_WITH_CUDA=True CUDA_HOME=/usr/local/cuda/
+RUN cd Kalib/third_party/grounded_segment_anything \
+    && python -m pip install -e segment_anything \
+    && pip install --no-build-isolation -e GroundingDINO \
+    && pip install --upgrade diffusers[torch] \
+    && bash install.sh \
+    && git clone https://github.com/xinyu1205/recognize-anything.git \
+    && pip install -r ./recognize-anything/requirements.txt \
+    && pip install -e ./recognize-anything/ \
+    && pip install opencv-python pycocotools matplotlib onnxruntime onnx ipykernel \
+    && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth" \
+    && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth" \
+    && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
 
 
-# # Install SpaTracker
-# # Download SpaTracker model checkpoints (spaT_final.pth) from https://drive.google.com/file/d/18YlG_rgrHcJ7lIYQWfRz_K669z6FdmUX/view
-# RUN cd Kalib/third_party/spatial_tracker \
-#     && pip install -r requirements.txt \
-#     && pip install gdown \
-#     && mkdir checkpoints \
-#     && cd checkpoints \
-#     && gdown 18YlG_rgrHcJ7lIYQWfRz_K669z6FdmUX -O spaT_final.pth
+# Install SpaTracker
+# Download SpaTracker model checkpoints (spaT_final.pth) from https://drive.google.com/file/d/18YlG_rgrHcJ7lIYQWfRz_K669z6FdmUX/view
+RUN cd Kalib/third_party/spatial_tracker \
+    && pip install -r requirements.txt \
+    && pip install gdown \
+    && mkdir checkpoints \
+    && cd checkpoints \
+    && gdown 18YlG_rgrHcJ7lIYQWfRz_K669z6FdmUX -O spaT_final.pth
 
 
-# # Install Co-Tracker
-# RUN cd Kalib/third_party/co_tracker \
-#     && pip install -e . \
-#     && pip install matplotlib flow_vis tqdm tensorboard
+# Install Co-Tracker
+RUN cd Kalib/third_party/co_tracker \
+    && pip install -e . \
+    && pip install matplotlib flow_vis tqdm tensorboard
 
 
 # Default command, open shell in the "kalib" conda environment
