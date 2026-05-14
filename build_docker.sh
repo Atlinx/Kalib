@@ -17,5 +17,5 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 echo "Building Docker image '$IMAGE_NAME' using '$DOCKERFILE_PATH'..."
-docker build --progress=plain -f "$DOCKERFILE_PATH" -t "$IMAGE_NAME" "$CONTEXT_DIR"
+docker build -f "$DOCKERFILE_PATH" -t "$IMAGE_NAME" "$CONTEXT_DIR"
 echo "Build complete: $IMAGE_NAME"

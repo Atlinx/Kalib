@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.6.2-runtime-ubuntu22.04
+FROM nvidia/cuda:12.6.2-devel-ubuntu22.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -42,50 +42,70 @@ RUN conda info | grep active
 # Set working directory
 WORKDIR /workspace
 
-# Install Kalib
-# RUN git clone https://github.com/Atlinx/Kalib.git \
-#     && cd Kalib \
-#     && pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126 \
-#     && pip install meson-python Cython \
-#     && pip install -r requirements.txt --no-build-isolation
-
-# # Install Grounded-SAM
-# ENV AM_I_DOCKER=False BUILD_WITH_CUDA=True CUDA_HOME=/usr/local/cuda/
-
-# RUN git clone https://github.com/IDEA-Research/Grounded-Segment-Anything.git \
-#     && cd Grounded-Segment-Anything \
-#     && python -m pip install -e segment_anything \
-#     && pip install --no-build-isolation -e GroundingDINO \
-#     && pip install --upgrade diffusers[torch] \
-#     && git submodule update --init --recursive
-
-# RUN cd Grounded-Segment-Anything/grounded-sam-osx && bash install.sh \
-
-# RUN cd Grounded-Segment-Anything \
-#     && git clone https://github.com/xinyu1205/recognize-anything.git \
-#     && pip install -r ./recognize-anything/requirements.txt \
-#     && pip install -e ./recognize-anything/ \
-#     && pip install opencv-python pycocotools matplotlib onnxruntime onnx ipykernel
-
-# # Download SAM checkpoints
-# RUN cd Kalib \
-#     && sam_ckpts_dir="./pretrained_checkpoints" \
-#     && mkdir -p "$sam_ckpts_dir" \
-#     && wget -P "$sam_ckpts_dir" "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth" \
-#     && wget -P "$sam_ckpts_dir" "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth" \
-#     && wget -P "$sam_ckpts_dir" "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
-
-# Create a non-root user for development (optional but recommended)
+# Create a non-root user for development
 RUN useradd -m -s /bin/bash developer && \
     echo "developer:developer" | chpasswd && \
     usermod -aG sudo developer && \
     chown -R developer:developer /workspace /opt/conda
-
 USER developer
 
-# Init conda for "developer" user's bash shell
-RUN conda init bash
+# Init conda for "developer" user's bash shell, and make shelf start in kalib env
+RUN conda init bash \
+    && echo "conda activate kalib" >> ~/.bashrc
+
+# Install PyTorch with CUDA support
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+
+# Obtained from torch.cuda.get_arch_list() for CUDA 12.6
+# See https://en.wikipedia.org/wiki/CUDA#GPUs_supported for more details on supported compute capabilities for each CUDA SDK version.
+ENV TORCH_CUDA_ARCH_LIST="5.0 6.0 7.0 7.5 8.0 8.6 9.0+PTX"
+
+# Add GitHub to known hosts to avoid SSH issues when cloning repositories
+RUN mkdir -p -m 0700 ~/.ssh && \
+    ssh-keyscan github.com >> ~/.ssh/known_hosts && \
+    chmod 600 ~/.ssh/known_hosts
+
+# Install Kalib
+# RUN git clone https://github.com/Atlinx/Kalib.git \
+#     && cd Kalib \
+#     && git submodule update --init --recursive \
+#     && pip install meson-python Cython \
+#     && pip install -r requirements.txt --no-build-isolation
+
+
+# # Install Grounded-SAM
+# # Download Grounded-SAM model checkpoints
+# ENV AM_I_DOCKER=False BUILD_WITH_CUDA=True CUDA_HOME=/usr/local/cuda/
+# RUN cd Kalib/third_party/grounded_segment_anything \
+#     && python -m pip install -e segment_anything \
+#     && pip install --no-build-isolation -e GroundingDINO \
+#     && pip install --upgrade diffusers[torch] \
+#     && bash install.sh \
+#     && git clone https://github.com/xinyu1205/recognize-anything.git \
+#     && pip install -r ./recognize-anything/requirements.txt \
+#     && pip install -e ./recognize-anything/ \
+#     && pip install opencv-python pycocotools matplotlib onnxruntime onnx ipykernel \
+#     && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth" \
+#     && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth" \
+#     && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
+
+
+# # Install SpaTracker
+# # Download SpaTracker model checkpoints (spaT_final.pth) from https://drive.google.com/file/d/18YlG_rgrHcJ7lIYQWfRz_K669z6FdmUX/view
+# RUN cd Kalib/third_party/spatial_tracker \
+#     && pip install -r requirements.txt \
+#     && pip install gdown \
+#     && mkdir checkpoints \
+#     && cd checkpoints \
+#     && gdown 18YlG_rgrHcJ7lIYQWfRz_K669z6FdmUX -O spaT_final.pth
+
+
+# # Install Co-Tracker
+# RUN cd Kalib/third_party/co_tracker \
+#     && pip install -e . \
+#     && pip install matplotlib flow_vis tqdm tensorboard
+
 
 # Default command, open shell in the "kalib" conda environment
-CMD ["/bin/bash", "-c", "source /opt/conda/etc/profile.d/conda.sh && conda activate kalib && exec /bin/bash -i"]
+CMD ["/bin/bash"]
 
