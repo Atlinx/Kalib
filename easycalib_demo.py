@@ -1,45 +1,52 @@
 import os
+
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 os.environ["NUMEXPR_NUM_THREADS"] = "1"
 
-import json
-from enum import Enum
-import numpy as np
-import os
-import torch
 import argparse
-import numpy as np
+import json
+import os
+from enum import Enum
 from multiprocessing import Pool
+
+import numpy as np
+import torch
+
 torch.multiprocessing.set_start_method('spawn', force=True)
 
-from easycalib.utils.utilities import overlay_mask_on_img, compute_forward_kinematics, render_mask, suppress_stdout, nostdout, time_block, namespace_to_dict, is_jsonable
-import imageio
-import subprocess
-import numpy as np
-import os.path as osp
-from glob import glob
-import cv2
 import functools
+import os.path as osp
+import pickle
+import subprocess
+from glob import glob
+
+import cv2
+import imageio
+import matplotlib as mpl
+import numpy as np
+
+from easycalib.config.parse_demo_argument import parse_easycalib_default_args
+from easycalib.lib.easycalib_analysis import CALIBERATION_METHODS, caliberate_camera
+from easycalib.utils.point_drawer import PointDrawer
+from easycalib.utils.setup_logger import setup_logger
 from easycalib.utils.utilities import (
+	compute_forward_kinematics,
+	is_jsonable,
 	merge_two_dicts,
 	namespace_to_dict,
-	time_block
+	nostdout,
+	overlay_mask_on_img,
+	render_mask,
+	run_grounded_sam,
+	suppress_stdout,
+	time_block,
 )
-from easycalib.utils.setup_logger import setup_logger
-from easycalib.lib.easycalib_analysis import caliberate_camera, CALIBERATION_METHODS
-from easycalib.utils.point_drawer import PointDrawer
-from easycalib.config.parse_demo_argument import parse_easycalib_default_args
-from easycalib.utils.utilities import run_grounded_sam
-import pickle
-
-import matplotlib as mpl
 
 mpl.use("tkagg")
 import matplotlib.pyplot as plt
-
 from tqdm import tqdm
 
 logger = setup_logger(__name__)
@@ -52,11 +59,15 @@ except ImportError:
 	logger.warning("CoTracker is not installed, running w/o cotracker support.")
 
 SPATIAL_TRACKER_INSTALLED=True
-try:
-	from easycalib.utils.spatial_tracker_predictor_wrapper import parse_spatracker_args, spatracker_predict
-except ImportError:
-	SPATIAL_TRACKER_INSTALLED = False
-	logger.warning("Spatial tracker is not installed, running w/o spatial_tracker support.")
+# try:
+from easycalib.utils.spatial_tracker_predictor_wrapper import (
+	parse_spatracker_args,
+	spatracker_predict,
+)
+
+# except ImportError:
+	# SPATIAL_TRACKER_INSTALLED = False
+	# logger.warning("Spatial tracker is not installed, running w/o spatial_tracker support.")
 
 KEYPOINT_TRACKING_METHODS = Enum("methods", ["COTRACKER", "SPATIAL_TRACKER", "DINO_TRACKER"])
 KEYPOINT_TRACKING_DICT = {"cotracker": KEYPOINT_TRACKING_METHODS.COTRACKER, "spatial_tracker": KEYPOINT_TRACKING_METHODS.SPATIAL_TRACKER, "dino_tracker": KEYPOINT_TRACKING_METHODS.DINO_TRACKER}

@@ -11,7 +11,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TORCH_CUDA_ARCH_LIST="5.0 6.0 7.0 7.5 8.0 8.6 9.0+PTX"
 
 # Install tools
-RUN apt-get update && apt-get install -y sudo neovim git wget
+#   neovim git wget
+# Fix libGL.so issues: https://stackoverflow.com/questions/55313610/importerror-libgl-so-1-cannot-open-shared-object-file-no-such-file-or-directo
+#   libgl1 libglib2.0-0 
+# Fix xrandr not found
+#   x11-xserver-utils
+RUN apt-get update && apt-get install -y sudo neovim git wget \
+    libgl1 libglib2.0-0 x11-xserver-utils \
 
 # Install Miniconda + init conda for "root" user's bash shell
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
@@ -111,11 +117,6 @@ RUN cd Kalib/third_party/cotracker \
 
 # Install Kalib package
 RUN cd Kalib && pip install -e .
-
-USER root
-# Fix libGL.so issues: https://stackoverflow.com/questions/55313610/importerror-libgl-so-1-cannot-open-shared-object-file-no-such-file-or-directo
-RUN apt-get install -y libgl1 libglib2.0-0
-USER developer
 
 WORKDIR /home/developer/Kalib
 

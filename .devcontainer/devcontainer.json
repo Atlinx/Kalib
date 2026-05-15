@@ -6,6 +6,9 @@
     "mounts": [
         "type=volume,dst=/home/developer/Kalib/third_party" // Hide third_party, to use the prebuild versions in the image
     ],
+    "runArgs": [
+        "--gpus", "all"
+    ],
     "remoteUser": "developer",
     "features": {
         "ghcr.io/devcontainers/features/git:1": {}
