@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
+#
 # Usage:
 #   ./build_docker.sh [image_name[:tag]]
 # Example:
 #   ./build_docker.sh kalib:latest
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 IMAGE_NAME="${1:-kalib:latest}"
 cd $SCRIPT_DIR
 
