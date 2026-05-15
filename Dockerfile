@@ -1,14 +1,14 @@
-FROM nvidia/cuda:12.6.2-devel-ubuntu22.04
+FROM nvidia/cuda:12.8.2-devel-ubuntu22.04
 
 # Set up env vars
 #
-# TORCH_CUDA_ARCH_LIST is obtained from torch.cuda.get_arch_list() for CUDA 12.6
+# TORCH_CUDA_ARCH_LIST is obtained from torch.cuda.get_arch_list() for CUDA 12.8
 # See https://en.wikipedia.org/wiki/CUDA#GPUs_supported for more details on supported compute capabilities for each CUDA SDK version.
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     CONDA_DIR=/opt/conda \
     PATH=/opt/conda/bin:$PATH \
-    TORCH_CUDA_ARCH_LIST="5.0 6.0 7.0 7.5 8.0 8.6 9.0+PTX"
+    TORCH_CUDA_ARCH_LIST="7.5 8.0 8.6 8.9 9.0 10.0 12.0+PTX"
 
 # Install tools
 #   neovim git wget
@@ -16,8 +16,10 @@ ENV DEBIAN_FRONTEND=noninteractive \
 #   libgl1 libglib2.0-0 
 # Fix xrandr not found
 #   x11-xserver-utils
+# Dependency of easycalib/utils/utilities.py
+#   proxychains4
 RUN apt-get update && apt-get install -y sudo neovim git wget \
-    libgl1 libglib2.0-0 x11-xserver-utils \
+    libgl1 libglib2.0-0 x11-xserver-utils proxychains4
 
 # Install Miniconda + init conda for "root" user's bash shell
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
@@ -50,7 +52,7 @@ RUN conda init bash \
     && echo "conda activate kalib" >> ~/.bashrc
 
 # Install PyTorch with CUDA support
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 
 
 # Install Kalib - rewrite git@github.com: SSH URLs to HTTPS so public submodules don't need SSH auth
