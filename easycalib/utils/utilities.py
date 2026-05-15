@@ -1,40 +1,41 @@
 import argparse
+import functools
 import math
-import numpy as np
-import torch
 import os.path as osp
 from argparse import Namespace
-import argparse
-from PIL import Image
+
 import matplotlib as mpl
-import functools
+import numpy as np
+import torch
+from PIL import Image
 
 mpl.use("tkagg")
 
+import contextlib
+import inspect
+import io
+import json
+import logging
+import multiprocessing as mp
+import os
+import random
+import shutil
+import subprocess
+import sys
+import time
+import warnings
+from contextlib import contextmanager
+
+import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import pybullet as p
 import pybullet_data
-import cv2
-import os
-import sys
-import io
-import json
-from contextlib import contextmanager
-from easycalib.utils.nvdiffrast_renderer import NVDiffrastRenderApiHelper
-import warnings
-import subprocess
-
-import matplotlib.pyplot as plt
-from easycalib.utils.os_utils import TemporaryDirectory, atomic_directory_setup
 from scipy.spatial.transform import Rotation as R
+
+from easycalib.utils.nvdiffrast_renderer import NVDiffrastRenderApiHelper
+from easycalib.utils.os_utils import TemporaryDirectory, atomic_directory_setup
 from easycalib.utils.setup_logger import setup_logger
-import shutil
-import contextlib
-import logging
-import inspect
-import time
-import multiprocessing as mp
-import random
 
 logger = setup_logger(__name__)
 
@@ -114,7 +115,7 @@ def run_grounded_sam(frame_save_path: str, mask_save_path: str = None, text_prom
 	with TemporaryDirectory(cleanup=False) as grounded_sam_output_dir:
 		os_env = os.environ.copy()
 		# print(grounded_sam_output_dir)
-		grounded_sam_comma = f"proxychains4 python {grounded_sam_script} --input_image {frame_save_path} --config {grounded_sam_config} --grounded_checkpoint {grounded_sam_checkpoint_path} --text_prompt '{text_prompt}' --sam_checkpoint {sam_checkpoint_path} --output_dir {grounded_sam_output_dir} --text_threshold 1.25 --box_threshold 0.3 --device 'cuda'"
+		grounded_sam_comma = f"python {grounded_sam_script} --input_image {frame_save_path} --config {grounded_sam_config} --grounded_checkpoint {grounded_sam_checkpoint_path} --text_prompt '{text_prompt}' --sam_checkpoint {sam_checkpoint_path} --output_dir {grounded_sam_output_dir} --text_threshold 1.25 --box_threshold 0.3 --device 'cuda'"
 		# logger.warning(f"Runing command: {grounded_sam_comma}")
 		process = subprocess.run(
 			grounded_sam_comma,

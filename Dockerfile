@@ -8,7 +8,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     CONDA_DIR=/opt/conda \
     PATH=/opt/conda/bin:$PATH \
-    TORCH_CUDA_ARCH_LIST="7.5 8.0 8.6 8.9 9.0 10.0 12.0+PTX"
+    TORCH_CUDA_ARCH_LIST="7.5 8.0 8.6 8.9 9.0 10.0 12.0+PTX" \
+    WGET="wget -nv --show-progress --progress=bar:force:noscroll"
 
 # Install tools
 #   neovim git wget
@@ -22,7 +23,7 @@ RUN apt-get update && apt-get install -y sudo neovim git wget \
     libgl1 libglib2.0-0 x11-xserver-utils proxychains4
 
 # Install Miniconda + init conda for "root" user's bash shell
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+RUN $WGET "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh" \
     && bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda \
     && rm Miniconda3-latest-Linux-x86_64.sh \
     && conda tos accept
@@ -65,7 +66,15 @@ RUN git config --global url."https://github.com/".insteadOf "git@github.com:" \
 
 
 # Install Grounded-SAM
+# Apply patched.ms_deform_attn_cuda.cu to support CUDA 12.8+
+#   Fixes error: ms_deform_attn.py: "Failed to load custom C++ ops. Running on CPU mode Only!
+#   See https://github.com/IDEA-Research/Grounded-Segment-Anything/issues/556
+# Pin huggingface_hub, transformers, and litellm versions to avoid AttributeError: 'BertModel' object has no attribute 'get_head_mask'
+#   See https://github.com/IDEA-Research/GroundingDINO/issues/446
+# Download weights for groundingdino_swint_ogc.pth
+#   See https://github.com/IDEA-Research/Grounded-Segment-Anything/issues/497
 ENV AM_I_DOCKER=False BUILD_WITH_CUDA=True CUDA_HOME=/usr/local/cuda/
+COPY ./patched.ms_deform_attn_cuda.cu /home/developer/Kalib/third_party/grounded_segment_anything/GroundingDINO/groundingdino/models/GroundingDINO/csrc/MsDeformAttn/ms_deform_attn_cuda.cu
 RUN cd Kalib \
     && cd third_party/grounded_segment_anything \
     && pip install -e segment_anything \
@@ -73,7 +82,9 @@ RUN cd Kalib \
     && pip install --upgrade diffusers[torch] \
     && cd grounded-sam-osx && bash install.sh \
     && cd .. \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --upgrade "huggingface_hub<1.0"  "transformers==4.37" "litellm" \
+    && $WGET "https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth"
 
 
 # Download SAM model checkpoints
@@ -82,9 +93,9 @@ RUN cd Kalib \
     && mkdir pretrained_checkpoints \
     && ln -sf /home/developer/Kalib/pretrained_checkpoints /home/developer/Kalib/third_party/grounded_segment_anything/ \
     && cd pretrained_checkpoints \
-    && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth" \
-    && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth" \
-    && wget "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
+    && $WGET "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth" \
+    && $WGET "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth" \
+    && $WGET "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth"
 
 
 # Install SpaTracker
@@ -103,9 +114,9 @@ RUN cd Kalib/third_party/spatial_tracker \
     && cd .. \
     && mkdir -p ./models/monoD/zoeDepth/ckpts \
     && cd ./models/monoD/zoeDepth/ckpts \
-    && wget https://github.com/isl-org/ZoeDepth/releases/download/v1.0/ZoeD_M12_K.pt \
-    && wget https://github.com/isl-org/ZoeDepth/releases/download/v1.0/ZoeD_M12_NK.pt \
-    && wget https://github.com/isl-org/MiDaS/releases/download/v3_1/dpt_beit_large_384.pt 
+    && $WGET "https://github.com/isl-org/ZoeDepth/releases/download/v1.0/ZoeD_M12_K.pt" \
+    && $WGET "https://github.com/isl-org/ZoeDepth/releases/download/v1.0/ZoeD_M12_NK.pt" \
+    && $WGET "https://github.com/isl-org/MiDaS/releases/download/v3_1/dpt_beit_large_384.pt" 
 
 
 # Install Co-Tracker
@@ -113,7 +124,7 @@ RUN cd Kalib/third_party/spatial_tracker \
 RUN cd Kalib/third_party/cotracker \
     && mkdir -p checkpoints \
     && cd checkpoints \
-    && wget https://huggingface.co/facebook/cotracker/resolve/main/cotracker2.pth \
+    && $WGET "https://huggingface.co/facebook/cotracker/resolve/main/cotracker2.pth" \
     && cd .. \
     && pip install -e .
 
