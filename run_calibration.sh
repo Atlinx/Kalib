@@ -16,7 +16,7 @@ python easycalib_demo.py  --root_dir $DATASET_DIR \
     --use_pnp_ransac false \
     --use_grounded_sam \
     --has_gt \
-    --win_len 1 \
+    --win_len 50 \
     --verbose \
     --render_mask \
     --easyhec_repo_path $SCRIPT_DIR/third_party/easyhec/ \
@@ -27,4 +27,4 @@ python easycalib_demo.py  --root_dir $DATASET_DIR \
     --tracking_device_id 0 \
     --mask_inference_device_id 0 \
     --keypoint_ids 0 \
-    --sam_type vit_b # Smaller sized SAM model
+    --sam_type vit_l # Smaller sized SAM model
