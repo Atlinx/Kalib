@@ -1,5 +1,5 @@
 #!/bin/bash
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
 mkdir -p "$SCRIPT_DIR/dataset"
 rm -rf "$SCRIPT_DIR/dataset/README.md"
